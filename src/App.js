@@ -8,6 +8,7 @@ class App extends Component {
         super();
         this.state = {
             newTodo: '',
+            editing: false,
             todos: [{
                 id:1, name: 'Write some code'
             },
@@ -20,6 +21,7 @@ class App extends Component {
         this.handleChange = this.handleChange.bind(this);
         this.addTodo = this.addTodo.bind(this); 
         this.deleteTodo = this.deleteTodo.bind(this);
+        this.updateTodo = this.updateTodo.bind(this);
     }
 
     handleChange(event) {
@@ -53,6 +55,13 @@ class App extends Component {
         
     }
 
+    updateTodo(index) {    
+        const todosCopy = [...this.state.todos];
+        let todo = todosCopy[index];
+        this.setState({ editing: true, newTodo: todo.name });
+
+    }
+
     render() {
         console.log(this.state.newTodo);
         return (
@@ -64,7 +73,7 @@ class App extends Component {
                     className="btn-info mb-3 form-control"
                     onClick={this.addTodo}
                 >
-                    Add todo
+                    {this.state.editing ? 'Update todo' : 'Add todo'}
                     </button>
                 <input
                     type="text"
@@ -74,16 +83,21 @@ class App extends Component {
                     onChange={this.handleChange}
                     value={this.state.newTodo}
                 />
+                { 
                     <ul className="list-group">
                         {this.state.todos.map((item, index) => {
-                        return <li
-                            key={item.id} className="list-group-item">{item.name}
-                            <button
-                                className="btn-sm ml-4 btn btn-danger"
-                                onClick={() => { this.deleteTodo(index); }}>X</button>
-                        </li>
+                            return <li
+                                key={item.id} className="list-group-item">
+                                <button
+                                    className="btn-sm mr-4 btn btn-info"
+                                    onClick={() => { this.updateTodo(index); }}>U</button>
+                                {item.name}
+                                <button
+                                    className="btn-sm ml-4 btn btn-danger"
+                                    onClick={() => { this.deleteTodo(index); }}>X</button>
+                            </li>
                         })}
-                    </ul>
+                    </ul>}
                 </div>
       
         );
