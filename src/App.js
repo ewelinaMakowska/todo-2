@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import _ from 'lodash';
 
 class App extends Component {
 
@@ -9,6 +10,7 @@ class App extends Component {
         this.state = {
             newTodo: '',
             editing: false,
+            editingIndex: null,
             todos: [{
                 id:1, name: 'Write some code'
             },
@@ -21,20 +23,21 @@ class App extends Component {
         this.handleChange = this.handleChange.bind(this);
         this.addTodo = this.addTodo.bind(this); 
         this.deleteTodo = this.deleteTodo.bind(this);
+        this.editTodo = this.editTodo.bind(this);
         this.updateTodo = this.updateTodo.bind(this);
+        this.generateTodoId = this.generateTodoId.bind(this);
     }
 
     handleChange(event) {
         this.setState({
             newTodo: event.target.value
         });
-       /* console.log(event.target.name, event.target.value); */
     }
 
     addTodo() {
         const newTodo = {
             name: this.state.newTodo,
-            id: this.state.todos[this.state.todos.length - 1].id + 1
+            id: this.generateTodoId
         };
 
         const updatedTodos = [...this.state.todos, newTodo];
@@ -45,21 +48,34 @@ class App extends Component {
     }
 
     deleteTodo(index) {
-        console.log(index);
-        const todosToUpdate = [...this.state.todos];
-        console.log(todosToUpdate);
-        const filteredTodos = todosToUpdate.filter(todo => { return todo.id !== index+1 });
-        console.log(filteredTodos);
-        this.setState({ todos: filteredTodos });
-        console.log(this.state.todos);
-        
+        const stateCopy = _.cloneDeep(this.state);
+        const todosCopy = [...stateCopy.todos];
+        todosCopy.splice(index, 1);
+        this.setState({ todos: todosCopy });   
     }
 
-    updateTodo(index) {    
-        const todosCopy = [...this.state.todos];
-        let todo = todosCopy[index];
-        this.setState({ editing: true, newTodo: todo.name });
+editTodo(index) {
+        const todo = this.state.todos[index];
+        this.setState({ newTodo: todo.name, editing: true, editingIndex: index });
+    }
 
+    updateTodo() {
+        const stateCopy = _.cloneDeep(this.state);
+        const todo = stateCopy.todos[this.state.editingIndex];
+        todo.name = stateCopy.newTodo;
+        const todos = stateCopy.todos;
+
+        todos[this.state.editingIndex] = todo;
+        this.setState({ todos: todos, editing: false, editingIndex: null, newTodo: '' });
+    }
+
+    generateTodoId() {
+        const lastTodo = this.state.todos.length - 1;
+        if (lastTodo) {
+            return lastTodo + 1;
+        } else {
+            return 1;
+        }
     }
 
     render() {
@@ -71,7 +87,7 @@ class App extends Component {
                 <h2 className="text-center p4">To do:</h2>
                 <button
                     className="btn-info mb-3 form-control"
-                    onClick={this.addTodo}
+                    onClick={this.state.editing ? this.updateTodo : this.addTodo}
                 >
                     {this.state.editing ? 'Update todo' : 'Add todo'}
                     </button>
@@ -84,13 +100,13 @@ class App extends Component {
                     value={this.state.newTodo}
                 />
                 { 
-                    <ul className="list-group">
+                   !this.state.editing && <ul className="list-group">
                         {this.state.todos.map((item, index) => {
                             return <li
                                 key={item.id} className="list-group-item">
                                 <button
                                     className="btn-sm mr-4 btn btn-info"
-                                    onClick={() => { this.updateTodo(index); }}>U</button>
+                                    onClick={() => { this.editTodo(index); }}>U</button>
                                 {item.name}
                                 <button
                                     className="btn-sm ml-4 btn btn-danger"
